@@ -190,14 +190,16 @@ function SortableQuestionItem({
 export default function Builder() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getSurvey, saveSurvey } = useSurveys();
-  
+  const { getSurvey, saveSurvey, isLoading } = useSurveys();
+
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    if (isLoading || initialized) return;
     if (id) {
       const existing = getSurvey(id);
       if (existing) {
@@ -213,8 +215,9 @@ export default function Builder() {
           brandColor: '#0ea5e9'
         });
       }
+      setInitialized(true);
     }
-  }, [id]);
+  }, [id, isLoading]);
 
   // Auto-save
   useEffect(() => {

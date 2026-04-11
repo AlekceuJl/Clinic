@@ -9,20 +9,25 @@ import { cn } from '../lib/utils';
 
 export default function SurveyView() {
   const { id } = useParams();
-  const { getSurvey } = useSurveys();
+  const { getSurvey, isLoading } = useSurveys();
   const { saveResponse } = useResponses(id);
-  
+
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (isLoading) return;
     if (id) {
       const s = getSurvey(id);
       if (s) setSurvey(s);
     }
-  }, [id]);
+  }, [id, isLoading]);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-slate-500">Загрузка...</div>;
+  }
 
   if (!survey) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Опрос не найден</div>;
