@@ -11,6 +11,7 @@
 import type * as responses from "../responses.js";
 import type * as seed from "../seed.js";
 import type * as surveys from "../surveys.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -22,6 +23,7 @@ declare const fullApi: ApiFromModules<{
   responses: typeof responses;
   seed: typeof seed;
   surveys: typeof surveys;
+  users: typeof users;
 }>;
 
 /**
