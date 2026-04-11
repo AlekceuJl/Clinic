@@ -149,15 +149,15 @@ export default function SurveyView() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 pt-12 relative z-0">
-        <div className="mb-12">
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">{survey.title}</h1>
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 relative z-0">
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 sm:mb-4">{survey.title}</h1>
           {survey.description && (
-            <p className="text-lg text-slate-600">{survey.description}</p>
+            <p className="text-base sm:text-lg text-slate-600">{survey.description}</p>
           )}
         </div>
 
-        <div className="space-y-12">
+        <div className="space-y-8 sm:space-y-12">
           {survey.questions.map((q, index) => (
             <motion.div 
               key={q.id}
@@ -165,7 +165,7 @@ export default function SurveyView() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100"
+              className="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-100"
             >
               <h3 className="text-xl font-medium text-slate-800 mb-2 leading-snug">
                 {q.title}
@@ -229,7 +229,7 @@ export default function SurveyView() {
                         key={n}
                         onClick={() => handleAnswer(q.id, n)}
                         className={cn(
-                          "w-12 h-12 rounded-xl text-lg font-medium transition-all",
+                          "w-10 h-10 sm:w-12 sm:h-12 rounded-xl text-base sm:text-lg font-medium transition-all",
                           isSelected 
                             ? "text-white shadow-md scale-105" 
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"

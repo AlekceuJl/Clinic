@@ -316,9 +316,9 @@ export default function Builder() {
 
   return (
     <div className="h-screen flex flex-col bg-slate-50 font-sans overflow-hidden">
-      <header className="h-14 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <button onClick={handleBack} className="text-slate-500 hover:text-slate-800 transition-colors">
+      <header className="bg-white border-b border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between shrink-0 gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button onClick={handleBack} className="text-slate-500 hover:text-slate-800 transition-colors shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <input 
@@ -326,21 +326,21 @@ export default function Builder() {
             value={survey.title}
             onChange={e => setSurvey({...survey, title: e.target.value})}
             placeholder="Название опроса"
-            className="font-medium text-lg outline-none bg-transparent placeholder:text-slate-300 w-64"
+            className="font-medium text-lg outline-none bg-transparent placeholder:text-slate-300 w-full sm:w-64"
           />
         </div>
-        <div className="flex items-center gap-4">
-          {isSaved && <span className="text-sm text-emerald-500 font-medium">Сохранено</span>}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          {isSaved && <span className="text-sm text-emerald-500 font-medium hidden sm:inline">Сохранено</span>}
           <button 
             onClick={handleShare}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
           >
             <Share2 className="w-4 h-4" />
-            Поделиться
+            <span className="hidden sm:inline">Поделиться</span>
           </button>
           <button 
             onClick={handleSave}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+            className="bg-sky-600 hover:bg-sky-700 text-white px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
           >
             <Save className="w-4 h-4" />
             Готово
@@ -348,27 +348,27 @@ export default function Builder() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Panel - Tools */}
-        <aside className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col shrink-0 overflow-y-auto">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Типы вопросов</h3>
-          <div className="space-y-2">
+        <aside className="w-full lg:w-64 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 p-3 lg:p-4 flex flex-col shrink-0 lg:overflow-y-auto z-10">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 lg:mb-4 hidden lg:block">Типы вопросов</h3>
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-1 lg:pb-0 custom-scrollbar">
             {QUESTION_TYPES.map(qt => (
               <button
                 key={qt.type}
                 onClick={() => addQuestion(qt.type)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-sky-500 hover:bg-sky-50 text-left transition-colors group"
+                className="shrink-0 lg:w-full flex items-center gap-2 lg:gap-3 p-2 lg:p-3 rounded-lg border border-slate-200 hover:border-sky-500 hover:bg-sky-50 text-left transition-colors group"
               >
                 <qt.icon className="w-5 h-5 text-slate-400 group-hover:text-sky-600" />
-                <span className="text-sm font-medium text-slate-700 group-hover:text-sky-700">{qt.label}</span>
+                <span className="text-sm font-medium text-slate-700 group-hover:text-sky-700 whitespace-nowrap">{qt.label}</span>
               </button>
             ))}
           </div>
         </aside>
 
         {/* Center - Canvas */}
-        <main className="flex-1 overflow-y-auto p-8 bg-slate-50/50">
-          <div className="max-w-2xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-slate-50/50">
+          <div className="max-w-2xl mx-auto pb-20 lg:pb-0">
             {survey.questions.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-xl border border-slate-200 border-dashed">
                 <p className="text-slate-500">Добавьте первый вопрос из панели слева</p>
@@ -394,7 +394,7 @@ export default function Builder() {
         </main>
 
         {/* Right Panel - Settings */}
-        <aside className="w-72 bg-white border-l border-slate-200 p-5 flex flex-col shrink-0 overflow-y-auto">
+        <aside className="w-full lg:w-72 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-4 lg:p-5 flex flex-col shrink-0 max-h-48 lg:max-h-none overflow-y-auto z-10">
           <div className="flex items-center gap-2 mb-6 text-slate-800">
             <Settings className="w-5 h-5" />
             <h3 className="font-semibold">Настройки</h3>

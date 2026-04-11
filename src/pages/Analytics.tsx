@@ -87,17 +87,17 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 sticky top-0 z-10">
-        <button onClick={() => navigate('/')} className="text-slate-500 hover:text-slate-800 transition-colors">
+      <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex items-start sm:items-center gap-3 sm:gap-4 sticky top-0 z-10">
+        <button onClick={() => navigate('/')} className="text-slate-500 hover:text-slate-800 transition-colors mt-1 sm:mt-0 shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900">Аналитика: {survey.title}</h1>
-          <p className="text-sm text-slate-500">Создан {new Date(survey.createdAt).toLocaleDateString()}</p>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900 truncate">Аналитика: {survey.title}</h1>
+          <p className="text-xs sm:text-sm text-slate-500">Создан {new Date(survey.createdAt).toLocaleDateString()}</p>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto p-6 mt-6">
+      <main className="max-w-5xl mx-auto p-4 sm:p-6 mt-4 sm:mt-6">
         {/* Top Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -143,7 +143,7 @@ export default function Analytics() {
               if (!stats) return null;
 
               return (
-                <div key={q.id} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <div key={q.id} className="bg-white p-5 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                   <div className="mb-6">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Вопрос {index + 1}</span>
                     <h3 className="text-xl font-medium text-slate-800">{q.title}</h3>
