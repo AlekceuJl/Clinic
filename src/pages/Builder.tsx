@@ -200,6 +200,7 @@ export default function Builder() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   useEffect(() => {
     if (isLoading || initialized) return;
@@ -398,21 +399,48 @@ export default function Builder() {
                 <p className="text-slate-500">Добавьте первый вопрос из панели слева</p>
               </div>
             ) : (
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={survey.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
-                  {survey.questions.map((q) => (
-                    <SortableQuestionItem
-                      key={q.id}
-                      question={q}
-                      isActive={activeQuestionId === q.id}
-                      onSelect={() => setActiveQuestionId(q.id)}
-                      onUpdate={updateQuestion}
-                      onDelete={() => deleteQuestion(q.id)}
-                      onDuplicate={() => duplicateQuestion(q)}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
+              <>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={survey.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
+                    {survey.questions.map((q) => (
+                      <SortableQuestionItem
+                        key={q.id}
+                        question={q}
+                        isActive={activeQuestionId === q.id}
+                        onSelect={() => setActiveQuestionId(q.id)}
+                        onUpdate={updateQuestion}
+                        onDelete={() => deleteQuestion(q.id)}
+                        onDuplicate={() => duplicateQuestion(q)}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+
+                {/* Mobile add question button */}
+                <div className="lg:hidden mt-4 relative">
+                  <button
+                    onClick={() => setShowAddMenu(!showAddMenu)}
+                    className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-sky-500 hover:text-sky-600 transition-colors flex items-center justify-center gap-2 font-medium text-sm"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Добавить вопрос
+                  </button>
+                  {showAddMenu && (
+                    <div className="absolute left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 shadow-lg z-20 overflow-hidden">
+                      {QUESTION_TYPES.map(qt => (
+                        <button
+                          key={qt.type}
+                          onClick={() => { addQuestion(qt.type); setShowAddMenu(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-sky-50 text-left transition-colors border-b border-slate-100 last:border-0"
+                        >
+                          <qt.icon className="w-5 h-5 text-slate-400" />
+                          <span className="text-sm font-medium text-slate-700">{qt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </main>
