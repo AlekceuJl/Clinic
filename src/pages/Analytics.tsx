@@ -207,25 +207,52 @@ export default function Analytics() {
                   )}
 
                   {q.type === 'contact' && 'answers' in stats && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm text-left text-slate-600">
-                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                          <tr>
-                            {q.contactFields?.includes('name') && <th className="px-4 py-3">Имя</th>}
-                            {q.contactFields?.includes('phone') && <th className="px-4 py-3">Телефон</th>}
-                            {q.contactFields?.includes('email') && <th className="px-4 py-3">Email</th>}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {stats.answers.map((ans: Record<string, string>, i: number) => (
-                            <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
-                              {q.contactFields?.includes('name') && <td className="px-4 py-3 font-medium text-slate-800">{ans.name || '-'}</td>}
-                              {q.contactFields?.includes('phone') && <td className="px-4 py-3">{ans.phone || '-'}</td>}
-                              {q.contactFields?.includes('email') && <td className="px-4 py-3">{ans.email || '-'}</td>}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                      {responses.map((response, i) => {
+                        const contactAnswer = response.answers.find(a => a.questionId === q.id);
+                        if (!contactAnswer || typeof contactAnswer.value !== 'object' || Array.isArray(contactAnswer.value)) return null;
+                        const contact = contactAnswer.value as Record<string, string>;
+                        const otherAnswers = response.answers.filter(a => a.questionId !== q.id);
+
+                        return (
+                          <div key={i} className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="bg-slate-50 px-4 py-3 flex flex-wrap gap-4 border-b border-slate-200">
+                              {contact.name && (
+                                <span className="text-sm"><span className="text-slate-500">Имя:</span> <span className="font-medium text-slate-800">{contact.name}</span></span>
+                              )}
+                              {contact.phone && (
+                                <span className="text-sm"><span className="text-slate-500">Тел:</span> <span className="font-medium text-slate-800">{contact.phone}</span></span>
+                              )}
+                              {contact.email && (
+                                <span className="text-sm"><span className="text-slate-500">Email:</span> <span className="font-medium text-slate-800">{contact.email}</span></span>
+                              )}
+                              <span className="text-xs text-slate-400 ml-auto">{new Date(response.submittedAt).toLocaleString()}</span>
+                            </div>
+                            {otherAnswers.length > 0 && (
+                              <div className="px-4 py-3 space-y-2">
+                                {otherAnswers.map((ans) => {
+                                  const question = survey.questions.find(sq => sq.id === ans.questionId);
+                                  if (!question) return null;
+                                  let displayValue = '';
+                                  if (Array.isArray(ans.value)) {
+                                    displayValue = ans.value.join(', ');
+                                  } else if (typeof ans.value === 'object') {
+                                    displayValue = Object.values(ans.value).join(', ');
+                                  } else {
+                                    displayValue = String(ans.value);
+                                  }
+                                  return (
+                                    <div key={ans.questionId} className="text-sm">
+                                      <span className="text-slate-500">{question.title}:</span>{' '}
+                                      <span className="text-slate-800">{displayValue}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
