@@ -7,6 +7,14 @@ export default function Dashboard() {
   const { surveys, deleteSurvey, saveSurvey } = useSurveys();
   const navigate = useNavigate();
 
+  const userCompanyName = (() => {
+    try {
+      const stored = localStorage.getItem('citymed_user');
+      if (!stored) return '';
+      return JSON.parse(stored).companyName || '';
+    } catch { return ''; }
+  })();
+
   const mySurveys = surveys.filter(s => !s._isTemplate);
   const templates = surveys.filter(s => s._isTemplate);
 
@@ -39,7 +47,7 @@ export default function Dashboard() {
           <div className="bg-sky-100 p-2 rounded-xl shrink-0">
             <Stethoscope className="w-6 h-6" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-800 truncate">City Med <span className="text-slate-400 font-normal hidden sm:inline">| Опросы</span></h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-800 truncate">{userCompanyName || 'Опросы'} <span className="text-slate-400 font-normal hidden sm:inline">| Опросы</span></h1>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
           <button

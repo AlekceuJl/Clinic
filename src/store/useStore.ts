@@ -2,19 +2,19 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Survey, SurveyResponse, Question, QuestionType } from '../types';
 
-function getUserId(): string | undefined {
+function getUserData(): { userId?: string; companyName?: string } {
   try {
     const stored = localStorage.getItem('citymed_user');
-    if (!stored) return undefined;
+    if (!stored) return {};
     const user = JSON.parse(stored);
-    return user.userId || undefined;
+    return { userId: user.userId || undefined, companyName: user.companyName || undefined };
   } catch {
-    return undefined;
+    return {};
   }
 }
 
 export function useSurveys() {
-  const userId = getUserId();
+  const { userId, companyName } = getUserData();
   const rawSurveys = useQuery(api.surveys.list, { userId });
   const saveMut = useMutation(api.surveys.save);
   const removeMut = useMutation(api.surveys.remove);
@@ -47,6 +47,7 @@ export function useSurveys() {
       brandColor: survey.brandColor,
       isActive: survey.isActive,
       userId,
+      companyName,
     });
   };
 

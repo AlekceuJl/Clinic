@@ -6,6 +6,7 @@ export default defineSchema({
     email: v.string(),
     passwordHash: v.string(),
     name: v.string(),
+    companyName: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
@@ -28,6 +29,7 @@ export default defineSchema({
     brandColor: v.optional(v.string()),
     isActive: v.boolean(),
     userId: v.optional(v.string()),
+    companyName: v.optional(v.string()),
   }).index("by_clientId", ["clientId"])
     .index("by_userId", ["userId"]),
 

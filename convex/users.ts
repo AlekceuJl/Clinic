@@ -14,6 +14,7 @@ export const register = mutation({
     email: v.string(),
     password: v.string(),
     name: v.string(),
+    companyName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -35,10 +36,11 @@ export const register = mutation({
       email: args.email.toLowerCase(),
       passwordHash,
       name: args.name,
+      companyName: args.companyName,
       createdAt: Date.now(),
     });
 
-    return { success: true, userId, name: args.name, email: args.email.toLowerCase() };
+    return { success: true, userId, name: args.name, email: args.email.toLowerCase(), companyName: args.companyName };
   },
 });
 
@@ -63,7 +65,7 @@ export const login = mutation({
       return { success: false, error: "Неверный email или пароль" };
     }
 
-    return { success: true, userId: user._id, name: user.name, email: user.email };
+    return { success: true, userId: user._id, name: user.name, email: user.email, companyName: user.companyName };
   },
 });
 
@@ -76,6 +78,6 @@ export const me = query({
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
     if (!user) return null;
-    return { name: user.name, email: user.email };
+    return { name: user.name, email: user.email, companyName: user.companyName };
   },
 });

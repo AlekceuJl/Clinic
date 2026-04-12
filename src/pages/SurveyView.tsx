@@ -26,7 +26,7 @@ export default function SurveyView() {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Опрос не найден</div>;
   }
 
-  const survey: Survey = {
+  const survey: Survey & { companyName?: string } = {
     id: rawSurvey.clientId,
     title: rawSurvey.title,
     description: rawSurvey.description,
@@ -38,6 +38,7 @@ export default function SurveyView() {
     createdAt: rawSurvey.createdAt,
     brandColor: rawSurvey.brandColor,
     isActive: rawSurvey.isActive,
+    companyName: rawSurvey.companyName ?? undefined,
   };
 
   const handleAnswer = (questionId: string, value: any) => {
@@ -157,7 +158,7 @@ export default function SurveyView() {
           <div className="p-2 rounded-xl" style={{ backgroundColor: `${survey.brandColor || '#0ea5e9'}15` }}>
             <Stethoscope className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">City Med</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-800">{survey.companyName || 'Опрос'}</h1>
         </div>
       </header>
 

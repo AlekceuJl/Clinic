@@ -41,6 +41,7 @@ export const save = mutation({
     brandColor: v.optional(v.string()),
     isActive: v.boolean(),
     userId: v.string(),
+    companyName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -59,6 +60,7 @@ export const save = mutation({
         brandColor: args.brandColor,
         isActive: args.isActive,
         userId: args.userId,
+        companyName: args.companyName,
       });
       return existing._id;
     } else {

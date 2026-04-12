@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { Stethoscope, Lock, Mail, ArrowRight, User, UserPlus } from 'lucide-react';
+import { Stethoscope, Lock, Mail, ArrowRight, User, UserPlus, Building2 } from 'lucide-react';
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -28,10 +29,10 @@ export default function Login() {
           setLoading(false);
           return;
         }
-        const result = await registerMut({ email, password, name: name.trim() });
+        const result = await registerMut({ email, password, name: name.trim(), companyName: companyName.trim() || undefined });
         if (result.success) {
           localStorage.setItem('citymed_auth', 'true');
-          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name, userId: result.userId }));
+          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name, userId: result.userId, companyName: result.companyName }));
           navigate('/');
         } else {
           setError(result.error || 'Ошибка регистрации');
@@ -40,7 +41,7 @@ export default function Login() {
         const result = await loginMut({ email, password });
         if (result.success) {
           localStorage.setItem('citymed_auth', 'true');
-          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name, userId: result.userId }));
+          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name, userId: result.userId, companyName: result.companyName }));
           navigate('/');
         } else {
           setError(result.error || 'Неверный email или пароль');
@@ -64,28 +65,45 @@ export default function Login() {
             {isRegister ? 'Регистрация' : 'Вход для сотрудников'}
           </h1>
           <p className="text-slate-500 text-sm mt-2 text-center">
-            Панель управления опросами City Med
+            Панель управления опросами
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {isRegister && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Имя</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-5 h-5" />
+            <>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Имя</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                    placeholder="Ваше имя"
+                    required
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                  placeholder="Ваше имя"
-                  required
-                />
               </div>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Название компании</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                    placeholder="Например: City Med"
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <div>
