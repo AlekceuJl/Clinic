@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { ClipboardList, Lock, Mail, ArrowRight, User, UserPlus, Building2 } from 'lucide-react';
+import { ClipboardList, Lock, Mail, ArrowRight, User, UserPlus, Building2, ShieldCheck } from 'lucide-react';
+
+const ACCESS_CODE = 'Shym2020$';
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
+  const [accessUnlocked, setAccessUnlocked] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
+  const [accessError, setAccessError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -62,12 +67,64 @@ export default function Login() {
             <ClipboardList className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">
-            {isRegister ? 'Регистрация' : 'Вход для сотрудников'}
+            {isRegister ? (accessUnlocked ? 'Регистрация' : 'Код доступа') : 'Вход для сотрудников'}
           </h1>
           <p className="text-slate-500 text-sm mt-2 text-center">
-            Панель управления опросами
+            {isRegister && !accessUnlocked ? 'Введите код доступа для регистрации' : 'Панель управления опросами'}
           </p>
         </div>
+
+        {isRegister && !accessUnlocked ? (
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Код доступа</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <input
+                  type="password"
+                  value={accessCode}
+                  onChange={(e) => { setAccessCode(e.target.value); setAccessError(''); }}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  placeholder="Введите код"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      if (accessCode === ACCESS_CODE) {
+                        setAccessUnlocked(true);
+                        setAccessError('');
+                      } else {
+                        setAccessError('Неверный код доступа');
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {accessError && (
+              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+                {accessError}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (accessCode === ACCESS_CODE) {
+                  setAccessUnlocked(true);
+                  setAccessError('');
+                } else {
+                  setAccessError('Неверный код доступа');
+                }
+              }}
+              className="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
+            >
+              Продолжить
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {isRegister && (
@@ -170,10 +227,23 @@ export default function Login() {
             )}
           </button>
         </form>
+        )}
 
         <div className="mt-6 pt-6 border-t border-slate-100 text-center">
           <button
-            onClick={() => { setIsRegister(!isRegister); setError(''); }}
+            onClick={() => {
+              if (isRegister) {
+                // Going back to login
+                setIsRegister(false);
+                setAccessUnlocked(false);
+                setAccessCode('');
+                setAccessError('');
+              } else {
+                // Going to register — will show access code gate
+                setIsRegister(true);
+              }
+              setError('');
+            }}
             className="text-sm text-sky-600 hover:text-sky-700 font-medium transition-colors"
           >
             {isRegister ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}
