@@ -31,7 +31,7 @@ export default function Login() {
         const result = await registerMut({ email, password, name: name.trim() });
         if (result.success) {
           localStorage.setItem('citymed_auth', 'true');
-          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name }));
+          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name, userId: result.userId }));
           navigate('/');
         } else {
           setError(result.error || 'Ошибка регистрации');
@@ -40,7 +40,7 @@ export default function Login() {
         const result = await loginMut({ email, password });
         if (result.success) {
           localStorage.setItem('citymed_auth', 'true');
-          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name }));
+          localStorage.setItem('citymed_user', JSON.stringify({ email: result.email, name: result.name, userId: result.userId }));
           navigate('/');
         } else {
           setError(result.error || 'Неверный email или пароль');

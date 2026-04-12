@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSurveys, useResponses } from '../store/useStore';
-import { Survey, Answer } from '../types';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { useResponses } from '../store/useStore';
+import { Survey, Answer, Question, QuestionType } from '../types';
 import { motion } from 'framer-motion';
 import { Check, Stethoscope } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,29 +11,34 @@ import { cn } from '../lib/utils';
 
 export default function SurveyView() {
   const { id } = useParams();
-  const { getSurvey, isLoading } = useSurveys();
+  const rawSurvey = useQuery(api.surveys.get, id ? { clientId: id } : "skip");
   const { saveResponse } = useResponses(id);
 
-  const [survey, setSurvey] = useState<Survey | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (isLoading) return;
-    if (id) {
-      const s = getSurvey(id);
-      if (s) setSurvey(s);
-    }
-  }, [id, isLoading]);
-
-  if (isLoading) {
+  if (rawSurvey === undefined) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Загрузка...</div>;
   }
 
-  if (!survey) {
+  if (!rawSurvey) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Опрос не найден</div>;
   }
+
+  const survey: Survey = {
+    id: rawSurvey.clientId,
+    title: rawSurvey.title,
+    description: rawSurvey.description,
+    questions: rawSurvey.questions.map((q): Question => ({
+      ...q,
+      type: q.type as QuestionType,
+      contactFields: q.contactFields as Question['contactFields'],
+    })),
+    createdAt: rawSurvey.createdAt,
+    brandColor: rawSurvey.brandColor,
+    isActive: rawSurvey.isActive,
+  };
 
   const handleAnswer = (questionId: string, value: any) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));

@@ -13,7 +13,17 @@ import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuth = localStorage.getItem('citymed_auth') === 'true';
-  return isAuth ? <>{children}</> : <Navigate to="/login" replace />;
+  let hasUserId = false;
+  try {
+    const user = JSON.parse(localStorage.getItem('citymed_user') || '{}');
+    hasUserId = !!user.userId;
+  } catch {}
+  if (!isAuth || !hasUserId) {
+    localStorage.removeItem('citymed_auth');
+    localStorage.removeItem('citymed_user');
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
 };
 
 export default function App() {

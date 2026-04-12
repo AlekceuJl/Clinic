@@ -2,8 +2,20 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Survey, SurveyResponse, Question, QuestionType } from '../types';
 
+function getUserId(): string | undefined {
+  try {
+    const stored = localStorage.getItem('citymed_user');
+    if (!stored) return undefined;
+    const user = JSON.parse(stored);
+    return user.userId || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function useSurveys() {
-  const rawSurveys = useQuery(api.surveys.list);
+  const userId = getUserId();
+  const rawSurveys = useQuery(api.surveys.list, { userId });
   const saveMut = useMutation(api.surveys.save);
   const removeMut = useMutation(api.surveys.remove);
 
@@ -19,11 +31,13 @@ export function useSurveys() {
     createdAt: s.createdAt,
     brandColor: s.brandColor,
     isActive: s.isActive,
+    _isTemplate: s.userId === undefined,
   }));
 
   const isLoading = rawSurveys === undefined;
 
   const saveSurvey = (survey: Survey) => {
+    if (!userId) return;
     saveMut({
       clientId: survey.id,
       title: survey.title,
@@ -32,11 +46,13 @@ export function useSurveys() {
       createdAt: survey.createdAt,
       brandColor: survey.brandColor,
       isActive: survey.isActive,
+      userId,
     });
   };
 
   const deleteSurvey = (id: string) => {
-    removeMut({ clientId: id });
+    if (!userId) return;
+    removeMut({ clientId: id, userId });
   };
 
   const getSurvey = (id: string) => surveys.find((s) => s.id === id);

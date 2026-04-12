@@ -2,9 +2,12 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("surveys").collect();
+  args: { userId: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const all = await ctx.db.query("surveys").collect();
+    return all.filter(
+      (s) => s.userId === args.userId || s.userId === undefined
+    );
   },
 });
 
@@ -37,6 +40,7 @@ export const save = mutation({
     createdAt: v.number(),
     brandColor: v.optional(v.string()),
     isActive: v.boolean(),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -45,12 +49,16 @@ export const save = mutation({
       .first();
 
     if (existing) {
+      if (existing.userId && existing.userId !== args.userId) {
+        throw new Error("Нет доступа к этому опросу");
+      }
       await ctx.db.patch(existing._id, {
         title: args.title,
         description: args.description,
         questions: args.questions,
         brandColor: args.brandColor,
         isActive: args.isActive,
+        userId: args.userId,
       });
       return existing._id;
     } else {
@@ -60,13 +68,16 @@ export const save = mutation({
 });
 
 export const remove = mutation({
-  args: { clientId: v.string() },
+  args: { clientId: v.string(), userId: v.string() },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("surveys")
       .withIndex("by_clientId", (q) => q.eq("clientId", args.clientId))
       .first();
     if (existing) {
+      if (existing.userId && existing.userId !== args.userId) {
+        throw new Error("Нет доступа к этому опросу");
+      }
       await ctx.db.delete(existing._id);
     }
   },

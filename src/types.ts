@@ -18,6 +18,7 @@ export interface Survey {
   createdAt: number;
   brandColor?: string;
   isActive: boolean;
+  _isTemplate?: boolean;
 }
 
 export interface Answer {

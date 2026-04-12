@@ -27,7 +27,9 @@ export default defineSchema({
     createdAt: v.number(),
     brandColor: v.optional(v.string()),
     isActive: v.boolean(),
-  }).index("by_clientId", ["clientId"]),
+    userId: v.optional(v.string()),
+  }).index("by_clientId", ["clientId"])
+    .index("by_userId", ["userId"]),
 
   responses: defineTable({
     surveyId: v.string(),
