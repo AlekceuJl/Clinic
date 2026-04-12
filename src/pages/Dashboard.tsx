@@ -17,13 +17,7 @@ export default function Dashboard() {
 
   const handleCloneTemplate = (template: typeof surveys[0]) => {
     const newId = uuidv4();
-    saveSurvey({
-      ...template,
-      id: newId,
-      createdAt: Date.now(),
-      _isTemplate: false,
-    });
-    navigate(`/builder/${newId}`);
+    navigate(`/builder/${newId}?from=${template.id}`);
   };
 
   const copyLink = (id: string) => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSurveys } from '../store/useStore';
 import { Survey, Question, QuestionType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -190,6 +190,8 @@ function SortableQuestionItem({
 export default function Builder() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromTemplateId = searchParams.get('from');
   const { getSurvey, saveSurvey, isLoading } = useSurveys();
 
   const [survey, setSurvey] = useState<Survey | null>(null);
@@ -204,6 +206,17 @@ export default function Builder() {
       const existing = getSurvey(id);
       if (existing) {
         setSurvey(existing);
+      } else if (fromTemplateId) {
+        const template = getSurvey(fromTemplateId);
+        setSurvey({
+          id,
+          title: template?.title || '',
+          description: template?.description || '',
+          questions: (template?.questions || []).map(q => ({ ...q, id: uuidv4() })),
+          createdAt: Date.now(),
+          isActive: true,
+          brandColor: template?.brandColor || '#0ea5e9',
+        });
       } else {
         setSurvey({
           id,
