@@ -5,8 +5,9 @@ import { Survey, Question, QuestionType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   ArrowLeft, Save, Settings, Type, List, CheckSquare, Star,
-  GripVertical, Trash2, Copy, Plus, Contact, Share2, X
+  GripVertical, Trash2, Copy, Plus, Contact, Share2, X, QrCode
 } from 'lucide-react';
+import QrModal from './QrModal';
 import {
   DndContext,
   closestCenter,
@@ -201,6 +202,7 @@ export default function Builder() {
   const [initialized, setInitialized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     if (isLoading || initialized) return;
@@ -355,6 +357,13 @@ export default function Builder() {
             title="Настройки"
           >
             <Settings className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => { if (survey) saveSurvey(survey); setShowQr(true); }}
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 p-1.5 rounded-md transition-colors"
+            title="QR-код"
+          >
+            <QrCode className="w-4 h-4" />
           </button>
           <button
             onClick={handleShare}
@@ -513,6 +522,14 @@ export default function Builder() {
           )}
         </aside>
       </div>
+
+      {showQr && survey && (
+        <QrModal
+          surveyUrl={`${window.location.origin}/s/${survey.id}`}
+          surveyTitle={survey.title}
+          onClose={() => setShowQr(false)}
+        />
+      )}
     </div>
   );
 }

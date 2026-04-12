@@ -1,11 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSurveys } from '../store/useStore';
-import { Plus, BarChart2, Edit, Trash2, Link as LinkIcon, ClipboardList, LogOut, Copy } from 'lucide-react';
+import { Plus, BarChart2, Edit, Trash2, Link as LinkIcon, ClipboardList, LogOut, Copy, QrCode } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { useState } from 'react';
+import QrModal from './QrModal';
 
 export default function Dashboard() {
   const { surveys, deleteSurvey, saveSurvey } = useSurveys();
   const navigate = useNavigate();
+  const [qrSurveyId, setQrSurveyId] = useState<string | null>(null);
 
   const userCompanyName = (() => {
     try {
@@ -121,6 +124,9 @@ export default function Dashboard() {
                     <button onClick={() => copyLink(survey.id)} className="p-2 hover:bg-sky-50 hover:text-sky-600 rounded-lg transition-colors" title="Скопировать ссылку">
                       <LinkIcon className="w-4 h-4" />
                     </button>
+                    <button onClick={() => setQrSurveyId(survey.id)} className="p-2 hover:bg-sky-50 hover:text-sky-600 rounded-lg transition-colors" title="QR-код">
+                      <QrCode className="w-4 h-4" />
+                    </button>
                   </div>
                   <button
                     onClick={() => {
@@ -177,6 +183,14 @@ export default function Dashboard() {
           </>
         )}
       </main>
+
+      {qrSurveyId && (
+        <QrModal
+          surveyUrl={`${window.location.origin}/s/${qrSurveyId}`}
+          surveyTitle={surveys.find(s => s.id === qrSurveyId)?.title || ''}
+          onClose={() => setQrSurveyId(null)}
+        />
+      )}
     </div>
   );
 }
