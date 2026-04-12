@@ -5,7 +5,7 @@ import { api } from '../../convex/_generated/api';
 import { useResponses } from '../store/useStore';
 import { Survey, Answer, Question, QuestionType } from '../types';
 import { motion } from 'framer-motion';
-import { Check, Stethoscope } from 'lucide-react';
+import { Check, ClipboardList } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../lib/utils';
 
@@ -156,7 +156,7 @@ export default function SurveyView() {
       <header className="bg-white/80 backdrop-blur-md py-6 px-6 border-b border-slate-200/50 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center gap-3" style={{ color: survey.brandColor || '#0ea5e9' }}>
           <div className="p-2 rounded-xl" style={{ backgroundColor: `${survey.brandColor || '#0ea5e9'}15` }}>
-            <Stethoscope className="w-6 h-6" />
+            <ClipboardList className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">{survey.companyName || 'Опрос'}</h1>
         </div>

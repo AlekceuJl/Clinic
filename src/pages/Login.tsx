@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { Stethoscope, Lock, Mail, ArrowRight, User, UserPlus, Building2 } from 'lucide-react';
+import { ClipboardList, Lock, Mail, ArrowRight, User, UserPlus, Building2 } from 'lucide-react';
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
@@ -59,7 +59,7 @@ export default function Login() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
         <div className="flex flex-col items-center mb-8">
           <div className="bg-sky-100 p-3 rounded-2xl text-sky-600 mb-4">
-            <Stethoscope className="w-8 h-8" />
+            <ClipboardList className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">
             {isRegister ? 'Регистрация' : 'Вход для сотрудников'}

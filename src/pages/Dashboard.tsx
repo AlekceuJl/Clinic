@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSurveys } from '../store/useStore';
-import { Plus, BarChart2, Edit, Trash2, Link as LinkIcon, Stethoscope, ClipboardList, LogOut, Copy } from 'lucide-react';
+import { Plus, BarChart2, Edit, Trash2, Link as LinkIcon, ClipboardList, LogOut, Copy } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function Dashboard() {
@@ -45,7 +45,7 @@ export default function Dashboard() {
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-10 gap-4">
         <div className="flex items-center gap-3 text-sky-600 w-full sm:w-auto">
           <div className="bg-sky-100 p-2 rounded-xl shrink-0">
-            <Stethoscope className="w-6 h-6" />
+            <ClipboardList className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-slate-800 truncate">{userCompanyName || 'Опросы'} <span className="text-slate-400 font-normal hidden sm:inline">| Опросы</span></h1>
         </div>
