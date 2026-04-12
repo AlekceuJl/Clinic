@@ -76,9 +76,9 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {surveys.map(survey => (
               <div key={survey.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 p-6 flex flex-col group">
-                <div className="flex-1">
+                <div className="flex-1 cursor-pointer" onClick={() => navigate(`/builder/${survey.id}`)}>
                   <div className="flex items-start justify-between mb-4">
-                    <div 
+                    <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm"
                       style={{ backgroundColor: survey.brandColor || '#0ea5e9' }}
                     >
