@@ -144,9 +144,9 @@ function SortableQuestionItem({
         )}
 
         {question.type === 'rating' && (
-          <div className="flex items-center gap-2 mt-4 text-slate-400">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-4 text-slate-400">
             {[1,2,3,4,5,6,7,8,9,10].map(n => (
-              <div key={n} className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-sm">{n}</div>
+              <div key={n} className="w-9 h-9 sm:w-8 sm:h-8 rounded bg-slate-100 flex items-center justify-center text-sm">{n}</div>
             ))}
           </div>
         )}
@@ -410,7 +410,7 @@ export default function Builder() {
         </main>
 
         {/* Right Panel - Settings */}
-        <aside className="w-full lg:w-72 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-4 lg:p-5 flex flex-col shrink-0 max-h-48 lg:max-h-none overflow-y-auto z-10">
+        <aside className="w-full lg:w-72 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-4 lg:p-5 flex flex-col shrink-0 max-h-64 sm:max-h-80 lg:max-h-none overflow-y-auto z-10">
           <div className="flex items-center gap-2 mb-6 text-slate-800">
             <Settings className="w-5 h-5" />
             <h3 className="font-semibold">Настройки</h3>

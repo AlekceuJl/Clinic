@@ -233,7 +233,7 @@ export default function SurveyView() {
               )}
 
               {q.type === 'rating' && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {[1,2,3,4,5,6,7,8,9,10].map(n => {
                     const isSelected = answers[q.id] === n;
                     return (
@@ -241,9 +241,9 @@ export default function SurveyView() {
                         key={n}
                         onClick={() => handleAnswer(q.id, n)}
                         className={cn(
-                          "w-10 h-10 sm:w-12 sm:h-12 rounded-xl text-base sm:text-lg font-medium transition-all",
-                          isSelected 
-                            ? "text-white shadow-md scale-105" 
+                          "w-11 h-11 sm:w-12 sm:h-12 rounded-xl text-base sm:text-lg font-medium transition-all",
+                          isSelected
+                            ? "text-white shadow-md scale-105"
                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                         )}
                         style={isSelected ? { backgroundColor: survey.brandColor || '#0ea5e9' } : {}}

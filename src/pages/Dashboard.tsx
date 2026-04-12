@@ -83,9 +83,9 @@ export default function Dashboard() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
             {mySurveys.map(survey => (
-              <div key={survey.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 p-6 flex flex-col group">
+              <div key={survey.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 p-4 sm:p-6 flex flex-col group">
                 <div className="flex-1 cursor-pointer" onClick={() => navigate(`/builder/${survey.id}`)}>
                   <div className="flex items-start justify-between mb-4">
                     <div
@@ -136,11 +136,11 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold text-slate-800">Готовые шаблоны</h2>
               <p className="text-slate-500 mt-1">Нажмите на шаблон, чтобы создать опрос на его основе</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {templates.map(template => (
                 <div
                   key={template.id}
-                  className="bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 p-6 flex flex-col group cursor-pointer"
+                  className="bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 p-4 sm:p-6 flex flex-col group cursor-pointer"
                   onClick={() => handleCloneTemplate(template)}
                 >
                   <div className="flex-1">

@@ -145,8 +145,8 @@ export default function Analytics() {
 
       <main className="max-w-5xl mx-auto p-4 sm:p-6 mt-4 sm:mt-6">
         {/* Top Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center">
               <Users className="w-6 h-6" />
             </div>
@@ -157,7 +157,7 @@ export default function Analytics() {
           </div>
 
           {overallAvgRating && (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center">
                 <Star className="w-6 h-6" />
               </div>
@@ -202,7 +202,7 @@ export default function Analytics() {
                         <span className="text-4xl font-bold text-slate-900">{stats.avg}</span>
                         <span className="text-slate-500 mb-1">средний балл</span>
                       </div>
-                      <div className="h-64 w-full">
+                      <div className="h-48 sm:h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={stats.distribution} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
