@@ -6,7 +6,7 @@ export const list = query({
   handler: async (ctx, args) => {
     const all = await ctx.db.query("surveys").collect();
     return all.filter(
-      (s) => s.userId === args.userId || s.userId === undefined
+      (s) => s.userId === args.userId || !s.userId
     );
   },
 });

@@ -31,7 +31,7 @@ export function useSurveys() {
     createdAt: s.createdAt,
     brandColor: s.brandColor,
     isActive: s.isActive,
-    _isTemplate: s.userId === undefined,
+    _isTemplate: !s.userId,
   }));
 
   const isLoading = rawSurveys === undefined;
