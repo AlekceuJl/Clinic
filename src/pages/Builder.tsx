@@ -4,8 +4,8 @@ import { useSurveys } from '../store/useStore';
 import { Survey, Question, QuestionType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { 
-  ArrowLeft, Save, Settings, Type, List, CheckSquare, Star, 
-  GripVertical, Trash2, Copy, Plus, Contact, Share2
+  ArrowLeft, Save, Settings, Type, List, CheckSquare, Star,
+  GripVertical, Trash2, Copy, Plus, Contact, Share2, X
 } from 'lucide-react';
 import {
   DndContext,
@@ -199,6 +199,7 @@ export default function Builder() {
   const [isSaved, setIsSaved] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (isLoading || initialized) return;
@@ -347,7 +348,14 @@ export default function Builder() {
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
           {isSaved && <span className="text-sm text-emerald-500 font-medium hidden sm:inline">Сохранено</span>}
-          <button 
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="lg:hidden bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 p-1.5 rounded-md transition-colors"
+            title="Настройки"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+          <button
             onClick={handleShare}
             className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 sm:px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
           >
@@ -409,11 +417,25 @@ export default function Builder() {
           </div>
         </main>
 
-        {/* Right Panel - Settings */}
-        <aside className="w-full lg:w-72 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 p-4 lg:p-5 flex flex-col shrink-0 max-h-64 sm:max-h-80 lg:max-h-none overflow-y-auto z-10">
-          <div className="flex items-center gap-2 mb-6 text-slate-800">
-            <Settings className="w-5 h-5" />
-            <h3 className="font-semibold">Настройки</h3>
+        {/* Right Panel - Settings (mobile overlay) */}
+        {showSettings && (
+          <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={() => setShowSettings(false)} />
+        )}
+        <aside className={`
+          ${showSettings ? 'translate-x-0' : 'translate-x-full'}
+          fixed top-0 right-0 h-full w-72 z-50
+          lg:relative lg:translate-x-0 lg:z-10 lg:h-auto lg:w-72
+          bg-white border-l border-slate-200 p-4 lg:p-5 flex flex-col shrink-0 overflow-y-auto
+          transition-transform duration-200
+        `}>
+          <div className="flex items-center justify-between mb-6 text-slate-800">
+            <div className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              <h3 className="font-semibold">Настройки</h3>
+            </div>
+            <button onClick={() => setShowSettings(false)} className="lg:hidden p-1 text-slate-400 hover:text-slate-700 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {activeQuestion ? (
