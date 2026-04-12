@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSurveys, useResponses } from '../store/useStore';
-import { ArrowLeft, Users, Star, BarChart2 } from 'lucide-react';
+import { ArrowLeft, Users, Star, BarChart2, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import * as XLSX from 'xlsx';
 
 export default function Analytics() {
   const { id } = useParams();
@@ -85,16 +86,61 @@ export default function Analytics() {
 
   const brandColor = survey.brandColor || '#0ea5e9';
 
+  const exportToExcel = () => {
+    if (responses.length === 0) return;
+
+    const rows = responses.map((response) => {
+      const row: Record<string, string> = {
+        'Дата ответа': new Date(response.submittedAt).toLocaleString(),
+      };
+      survey.questions.forEach((q) => {
+        const answer = response.answers.find((a) => a.questionId === q.id);
+        if (!answer) {
+          row[q.title] = '';
+          return;
+        }
+        const val = answer.value;
+        if (Array.isArray(val)) {
+          row[q.title] = val.join(', ');
+        } else if (typeof val === 'object' && val !== null) {
+          const contact = val as Record<string, string>;
+          const parts: string[] = [];
+          if (contact.name) parts.push(`Имя: ${contact.name}`);
+          if (contact.phone) parts.push(`Тел: ${contact.phone}`);
+          if (contact.email) parts.push(`Email: ${contact.email}`);
+          row[q.title] = parts.join('; ');
+        } else {
+          row[q.title] = String(val);
+        }
+      });
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Ответы');
+    XLSX.writeFile(wb, `${survey.title || 'Опрос'} — ответы.xlsx`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex items-start sm:items-center gap-3 sm:gap-4 sticky top-0 z-10">
         <button onClick={() => navigate('/')} className="text-slate-500 hover:text-slate-800 transition-colors mt-1 sm:mt-0 shrink-0">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900 truncate">Аналитика: {survey.title}</h1>
           <p className="text-xs sm:text-sm text-slate-500">Создан {new Date(survey.createdAt).toLocaleDateString()}</p>
         </div>
+        {totalResponses > 0 && (
+          <button
+            onClick={exportToExcel}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md shrink-0"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Скачать Excel</span>
+          </button>
+        )}
       </header>
 
       <main className="max-w-5xl mx-auto p-4 sm:p-6 mt-4 sm:mt-6">
