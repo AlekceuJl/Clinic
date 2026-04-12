@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSurveys, useResponses } from '../store/useStore';
-import { ArrowLeft, Users, Star, BarChart2, Download } from 'lucide-react';
+import { ArrowLeft, Users, Star, BarChart2, Download, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
 
@@ -13,14 +13,45 @@ export default function Analytics() {
   
   const survey = useMemo(() => id ? getSurvey(id) : null, [id, getSurvey]);
 
+  type Period = 'all' | 'today' | '7days' | '30days' | 'custom';
+  const [period, setPeriod] = useState<Period>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const filteredResponses = useMemo(() => {
+    if (period === 'all') return responses;
+
+    const now = new Date();
+    let from: Date;
+    let to: Date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    if (period === 'today') {
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    } else if (period === '7days') {
+      from = new Date(now);
+      from.setDate(from.getDate() - 7);
+      from.setHours(0, 0, 0, 0);
+    } else if (period === '30days') {
+      from = new Date(now);
+      from.setDate(from.getDate() - 30);
+      from.setHours(0, 0, 0, 0);
+    } else {
+      // custom
+      from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date(0);
+      to = dateTo ? new Date(dateTo + 'T23:59:59.999') : new Date(now.getFullYear() + 1, 0, 1);
+    }
+
+    return responses.filter(r => r.submittedAt >= from.getTime() && r.submittedAt <= to.getTime());
+  }, [responses, period, dateFrom, dateTo]);
+
   if (!survey) {
     return <div className="min-h-screen flex items-center justify-center">Опрос не найден</div>;
   }
 
-  const totalResponses = responses.length;
+  const totalResponses = filteredResponses.length;
 
   const getQuestionAnalytics = (questionId: string, type: string) => {
-    const answers = responses.map(r => r.answers.find(a => a.questionId === questionId)?.value).filter(v => v !== undefined && v !== null && v !== '');
+    const answers = filteredResponses.map(r => r.answers.find(a => a.questionId === questionId)?.value).filter(v => v !== undefined && v !== null && v !== '');
     
     if (answers.length === 0) return null;
 
@@ -82,14 +113,14 @@ export default function Analytics() {
     });
 
     return totalCount > 0 ? (totalSum / totalCount).toFixed(1) : null;
-  }, [survey, responses]);
+  }, [survey, filteredResponses]);
 
   const brandColor = survey.brandColor || '#0ea5e9';
 
   const exportToExcel = () => {
-    if (responses.length === 0) return;
+    if (filteredResponses.length === 0) return;
 
-    const rows = responses.map((response) => {
+    const rows = filteredResponses.map((response) => {
       const row: Record<string, string> = {
         'Дата ответа': new Date(response.submittedAt).toLocaleString(),
       };
@@ -144,6 +175,59 @@ export default function Analytics() {
       </header>
 
       <main className="max-w-5xl mx-auto p-4 sm:p-6 mt-4 sm:mt-6">
+        {/* Period Filter */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-slate-600 shrink-0">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm font-medium">Период:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {([
+                ['all', 'Всё время'],
+                ['today', 'Сегодня'],
+                ['7days', '7 дней'],
+                ['30days', '30 дней'],
+                ['custom', 'Свой период'],
+              ] as [Period, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setPeriod(key)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    period === key
+                      ? 'bg-sky-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {period === 'custom' && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                />
+                <span className="text-slate-400 text-sm">—</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                />
+              </div>
+            )}
+          </div>
+          {period !== 'all' && (
+            <p className="text-xs text-slate-400 mt-2">
+              Показано {filteredResponses.length} из {responses.length} ответов
+            </p>
+          )}
+        </div>
+
         {/* Top Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -254,7 +338,7 @@ export default function Analytics() {
 
                   {q.type === 'contact' && 'answers' in stats && (
                     <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                      {responses.map((response, i) => {
+                      {filteredResponses.map((response, i) => {
                         const contactAnswer = response.answers.find(a => a.questionId === q.id);
                         if (!contactAnswer || typeof contactAnswer.value !== 'object' || Array.isArray(contactAnswer.value)) return null;
                         const contact = contactAnswer.value as Record<string, string>;
