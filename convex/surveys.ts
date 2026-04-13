@@ -35,6 +35,10 @@ export const save = mutation({
         required: v.boolean(),
         options: v.optional(v.array(v.string())),
         contactFields: v.optional(v.array(v.string())),
+        condition: v.optional(v.object({
+          questionId: v.string(),
+          value: v.string(),
+        })),
       })
     ),
     createdAt: v.number(),

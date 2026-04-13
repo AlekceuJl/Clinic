@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Check, ClipboardList } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { cn } from '../lib/utils';
+import { isQuestionVisible } from '../lib/conditionUtils';
 
 export default function SurveyView() {
   const { id } = useParams();
@@ -34,6 +35,7 @@ export default function SurveyView() {
       ...q,
       type: q.type as QuestionType,
       contactFields: q.contactFields as Question['contactFields'],
+      condition: q.condition as Question['condition'],
     })),
     createdAt: rawSurvey.createdAt,
     brandColor: rawSurvey.brandColor,
@@ -42,7 +44,15 @@ export default function SurveyView() {
   };
 
   const handleAnswer = (questionId: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
+    setAnswers(prev => {
+      const next = { ...prev, [questionId]: value };
+      survey.questions.forEach(q => {
+        if (q.condition?.questionId === questionId && !isQuestionVisible(q, next, survey.questions)) {
+          delete next[q.id];
+        }
+      });
+      return next;
+    });
     if (errors[questionId]) {
       setErrors(prev => {
         const newErr = { ...prev };
@@ -87,6 +97,7 @@ export default function SurveyView() {
   const validate = () => {
     const newErrors: Record<string, string> = {};
     survey.questions.forEach(q => {
+      if (!isQuestionVisible(q, answers, survey.questions)) return;
       if (q.required) {
         const val = answers[q.id];
         if (q.type === 'contact') {
@@ -112,10 +123,12 @@ export default function SurveyView() {
       return;
     }
 
-    const formattedAnswers: Answer[] = Object.entries(answers).map(([questionId, value]) => ({
-      questionId,
-      value
-    }));
+    const formattedAnswers: Answer[] = Object.entries(answers)
+      .filter(([questionId]) => {
+        const q = survey.questions.find(q => q.id === questionId);
+        return q && isQuestionVisible(q, answers, survey.questions);
+      })
+      .map(([questionId, value]) => ({ questionId, value }));
 
     saveResponse({
       id: uuidv4(),
@@ -171,8 +184,10 @@ export default function SurveyView() {
         </div>
 
         <div className="space-y-8 sm:space-y-12">
-          {survey.questions.map((q, index) => (
-            <motion.div 
+          {survey.questions.map((q, index) => {
+            if (!isQuestionVisible(q, answers, survey.questions)) return null;
+            return (
+            <motion.div
               key={q.id}
               id={`q-${q.id}`}
               initial={{ y: 20, opacity: 0 }}
@@ -301,7 +316,8 @@ export default function SurveyView() {
                 <p className="text-red-500 text-sm mt-3">{errors[q.id]}</p>
               )}
             </motion.div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mt-12 flex justify-end">

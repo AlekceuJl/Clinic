@@ -277,7 +277,12 @@ export default function Analytics() {
                   <div className="mb-6">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Вопрос {index + 1}</span>
                     <h3 className="text-xl font-medium text-slate-800">{q.title}</h3>
-                    <p className="text-sm text-slate-500 mt-1">Ответов: {stats.total}</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Ответов: {stats.total}
+                      {q.condition && (
+                        <span className="ml-2 text-amber-600">(условный вопрос)</span>
+                      )}
+                    </p>
                   </div>
 
                   {q.type === 'rating' && 'avg' in stats && (

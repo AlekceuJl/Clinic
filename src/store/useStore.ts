@@ -27,6 +27,7 @@ export function useSurveys() {
       ...q,
       type: q.type as QuestionType,
       contactFields: q.contactFields as Question['contactFields'],
+      condition: q.condition as Question['condition'],
     })),
     createdAt: s.createdAt,
     brandColor: s.brandColor,

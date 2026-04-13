@@ -96,6 +96,9 @@ function SortableQuestionItem({
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wider ml-2">
           {QUESTION_TYPES.find(t => t.type === question.type)?.label}
         </span>
+        {question.condition && (
+          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full ml-2">Условный</span>
+        )}
         <div className="ml-auto flex items-center gap-1">
           <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} className="p-1.5 text-slate-400 hover:text-sky-600 rounded transition-colors" title="Дублировать">
             <Copy className="w-4 h-4" />
@@ -258,6 +261,14 @@ export default function Builder() {
     })
   );
 
+  const getEligibleTriggers = (currentId: string): Question[] => {
+    if (!survey) return [];
+    const idx = survey.questions.findIndex(q => q.id === currentId);
+    return survey.questions.filter((q, i) =>
+      i < idx && (q.type === 'single' || q.type === 'multiple') && q.options && q.options.length > 0
+    );
+  };
+
   if (!survey) return null;
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -267,10 +278,17 @@ export default function Builder() {
         if (!prev) return prev;
         const oldIndex = prev.questions.findIndex((q) => q.id === active.id);
         const newIndex = prev.questions.findIndex((q) => q.id === over.id);
-        return {
-          ...prev,
-          questions: arrayMove(prev.questions, oldIndex, newIndex),
-        };
+        const reordered = arrayMove(prev.questions, oldIndex, newIndex);
+        const cleaned = reordered.map((q, idx) => {
+          if (q.condition) {
+            const triggerIdx = reordered.findIndex(tq => tq.id === q.condition!.questionId);
+            if (triggerIdx === -1 || triggerIdx >= idx) {
+              return { ...q, condition: undefined };
+            }
+          }
+          return q;
+        });
+        return { ...prev, questions: cleaned };
       });
     }
   };
@@ -298,7 +316,9 @@ export default function Builder() {
   const deleteQuestion = (qId: string) => {
     setSurvey(prev => prev ? {
       ...prev,
-      questions: prev.questions.filter(q => q.id !== qId)
+      questions: prev.questions
+        .filter(q => q.id !== qId)
+        .map(q => q.condition?.questionId === qId ? { ...q, condition: undefined } : q)
     } : prev);
     if (activeQuestionId === qId) setActiveQuestionId(null);
   };
@@ -480,14 +500,84 @@ export default function Builder() {
               <div>
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Вопрос</h4>
                 <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={activeQuestion.required}
                     onChange={e => updateQuestion({...activeQuestion, required: e.target.checked})}
                     className="rounded text-sky-600 focus:ring-sky-500"
                   />
                   Обязательный вопрос
                 </label>
+              </div>
+
+              {/* Condition section */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Условие показа</h4>
+                {getEligibleTriggers(activeQuestion.id).length === 0 ? (
+                  <p className="text-xs text-slate-400">Добавьте вопрос с вариантами выше, чтобы настроить условие</p>
+                ) : (
+                  <>
+                    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer mb-3">
+                      <input
+                        type="checkbox"
+                        checked={!!activeQuestion.condition}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            const triggers = getEligibleTriggers(activeQuestion.id);
+                            if (triggers.length > 0) {
+                              updateQuestion({
+                                ...activeQuestion,
+                                condition: { questionId: triggers[0].id, value: triggers[0].options?.[0] || '' }
+                              });
+                            }
+                          } else {
+                            updateQuestion({ ...activeQuestion, condition: undefined });
+                          }
+                        }}
+                        className="rounded text-sky-600 focus:ring-sky-500"
+                      />
+                      Показывать по условию
+                    </label>
+
+                    {activeQuestion.condition && (
+                      <div className="space-y-3 pl-1">
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Если в вопросе:</label>
+                          <select
+                            value={activeQuestion.condition.questionId}
+                            onChange={e => {
+                              const trigger = survey.questions.find(q => q.id === e.target.value);
+                              updateQuestion({
+                                ...activeQuestion,
+                                condition: { questionId: e.target.value, value: trigger?.options?.[0] || '' }
+                              });
+                            }}
+                            className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-sky-500"
+                          >
+                            {getEligibleTriggers(activeQuestion.id).map(q => (
+                              <option key={q.id} value={q.id}>{q.title || 'Без названия'}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Выбран ответ:</label>
+                          <select
+                            value={activeQuestion.condition.value}
+                            onChange={e => updateQuestion({
+                              ...activeQuestion,
+                              condition: { ...activeQuestion.condition!, value: e.target.value }
+                            })}
+                            className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-sky-500"
+                          >
+                            {survey.questions.find(q => q.id === activeQuestion.condition!.questionId)?.options?.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           ) : (

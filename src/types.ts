@@ -1,13 +1,19 @@
 export type QuestionType = 'single' | 'multiple' | 'text' | 'rating' | 'contact';
 
+export interface QuestionCondition {
+  questionId: string;
+  value: string;
+}
+
 export interface Question {
   id: string;
   type: QuestionType;
   title: string;
   description?: string;
   required: boolean;
-  options?: string[]; // Used for single and multiple choice
-  contactFields?: ('name' | 'phone' | 'email')[]; // Used for contact
+  options?: string[];
+  contactFields?: ('name' | 'phone' | 'email')[];
+  condition?: QuestionCondition;
 }
 
 export interface Survey {
