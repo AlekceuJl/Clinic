@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx convex:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(gh repo:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(node -e ':*)"
+    ]
+  }
+}

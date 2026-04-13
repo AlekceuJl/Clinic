@@ -5,7 +5,7 @@ import { Survey, Question, QuestionType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   ArrowLeft, Save, Settings, Type, List, CheckSquare, Star,
-  GripVertical, Trash2, Copy, Plus, Contact, Share2, X, QrCode
+  GripVertical, Trash2, Copy, Plus, Contact, Share2, X, QrCode, GitBranch
 } from 'lucide-react';
 import QrModal from './QrModal';
 import {
@@ -35,20 +35,28 @@ const QUESTION_TYPES: { type: QuestionType; label: string; icon: any }[] = [
   { type: 'contact', label: 'Контактные данные', icon: Contact },
 ];
 
-function SortableQuestionItem({ 
-  question, 
-  isActive, 
-  onSelect, 
-  onUpdate, 
-  onDelete, 
-  onDuplicate 
-}: { 
-  question: Question; 
-  isActive: boolean; 
+function SortableQuestionItem({
+  question,
+  isActive,
+  allQuestions,
+  onSelect,
+  onUpdate,
+  onDelete,
+  onDuplicate,
+  onAddBranch,
+  onOptionRenamed,
+  onOptionRemoved,
+}: {
+  question: Question;
+  isActive: boolean;
+  allQuestions: Question[];
   onSelect: () => void;
   onUpdate: (q: Question) => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  onAddBranch: (questionId: string, optionValue: string) => void;
+  onOptionRenamed: (questionId: string, oldValue: string, newValue: string) => void;
+  onOptionRemoved: (questionId: string, optionValue: string) => void;
 }) {
   const {
     attributes,
@@ -64,9 +72,13 @@ function SortableQuestionItem({
   };
 
   const handleOptionChange = (idx: number, val: string) => {
+    const oldVal = question.options?.[idx];
     const newOptions = [...(question.options || [])];
     newOptions[idx] = val;
     onUpdate({ ...question, options: newOptions });
+    if (oldVal && oldVal !== val) {
+      onOptionRenamed(question.id, oldVal, val);
+    }
   };
 
   const addOption = () => {
@@ -74,9 +86,17 @@ function SortableQuestionItem({
   };
 
   const removeOption = (idx: number) => {
+    const removedVal = question.options?.[idx];
     const newOptions = [...(question.options || [])];
     newOptions.splice(idx, 1);
     onUpdate({ ...question, options: newOptions });
+    if (removedVal) {
+      onOptionRemoved(question.id, removedVal);
+    }
+  };
+
+  const hasBranch = (optionValue: string) => {
+    return allQuestions.some(q => q.condition?.questionId === question.id && q.condition?.value === optionValue);
   };
 
   return (
@@ -96,9 +116,15 @@ function SortableQuestionItem({
         <span className="text-xs font-medium text-slate-500 uppercase tracking-wider ml-2">
           {QUESTION_TYPES.find(t => t.type === question.type)?.label}
         </span>
-        {question.condition && (
-          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full ml-2">Условный</span>
-        )}
+        {question.condition && (() => {
+          const trigger = allQuestions.find(q => q.id === question.condition!.questionId);
+          return (
+            <span className="text-xs text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full ml-2 flex items-center gap-1" title={`Показывается если в «${trigger?.title || '...'}» выбрано «${question.condition!.value}»`}>
+              <GitBranch className="w-3 h-3" />
+              ↳ «{question.condition!.value}»
+            </span>
+          );
+        })()}
         <div className="ml-auto flex items-center gap-1">
           <button onClick={(e) => { e.stopPropagation(); onDuplicate(); }} className="p-1.5 text-slate-400 hover:text-sky-600 rounded transition-colors" title="Дублировать">
             <Copy className="w-4 h-4" />
@@ -139,6 +165,23 @@ function SortableQuestionItem({
                 <button onClick={() => removeOption(idx)} className="text-slate-300 hover:text-red-500">
                   <Trash2 className="w-3 h-3" />
                 </button>
+                {hasBranch(opt) ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onAddBranch(question.id, opt); }}
+                    className="text-sky-500 hover:text-sky-700 p-0.5"
+                    title={`Перейти к ветке «${opt}»`}
+                  >
+                    <GitBranch className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onAddBranch(question.id, opt); }}
+                    className="text-slate-300 hover:text-sky-600 p-0.5"
+                    title={`Создать ветку для «${opt}»`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             ))}
             <button onClick={addOption} className="flex items-center gap-1 text-sm text-sky-600 hover:underline mt-2">
@@ -323,6 +366,58 @@ export default function Builder() {
     if (activeQuestionId === qId) setActiveQuestionId(null);
   };
 
+  const addBranchQuestion = (triggerQuestionId: string, optionValue: string) => {
+    if (!survey) return;
+    // Check if branch already exists
+    const existing = survey.questions.find(
+      q => q.condition?.questionId === triggerQuestionId && q.condition?.value === optionValue
+    );
+    if (existing) {
+      setActiveQuestionId(existing.id);
+      document.getElementById(`q-item-${existing.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const newQ: Question = {
+      id: uuidv4(),
+      type: 'text',
+      title: '',
+      required: false,
+      condition: { questionId: triggerQuestionId, value: optionValue },
+    };
+    // Insert after trigger and its existing branches
+    const triggerIdx = survey.questions.findIndex(q => q.id === triggerQuestionId);
+    let insertIdx = triggerIdx + 1;
+    while (insertIdx < survey.questions.length && survey.questions[insertIdx].condition?.questionId === triggerQuestionId) {
+      insertIdx++;
+    }
+    const newQuestions = [...survey.questions];
+    newQuestions.splice(insertIdx, 0, newQ);
+    setSurvey({ ...survey, questions: newQuestions });
+    setActiveQuestionId(newQ.id);
+  };
+
+  const handleOptionRenamed = (questionId: string, oldValue: string, newValue: string) => {
+    setSurvey(prev => prev ? {
+      ...prev,
+      questions: prev.questions.map(q =>
+        q.condition?.questionId === questionId && q.condition?.value === oldValue
+          ? { ...q, condition: { questionId, value: newValue } }
+          : q
+      )
+    } : prev);
+  };
+
+  const handleOptionRemoved = (questionId: string, optionValue: string) => {
+    setSurvey(prev => prev ? {
+      ...prev,
+      questions: prev.questions.map(q =>
+        q.condition?.questionId === questionId && q.condition?.value === optionValue
+          ? { ...q, condition: undefined }
+          : q
+      )
+    } : prev);
+  };
+
   const duplicateQuestion = (q: Question) => {
     const newQ = { ...q, id: uuidv4() };
     setSurvey(prev => {
@@ -432,15 +527,20 @@ export default function Builder() {
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={survey.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
                     {survey.questions.map((q) => (
-                      <SortableQuestionItem
-                        key={q.id}
-                        question={q}
-                        isActive={activeQuestionId === q.id}
-                        onSelect={() => setActiveQuestionId(q.id)}
-                        onUpdate={updateQuestion}
-                        onDelete={() => deleteQuestion(q.id)}
-                        onDuplicate={() => duplicateQuestion(q)}
-                      />
+                      <div key={q.id} id={`q-item-${q.id}`}>
+                        <SortableQuestionItem
+                          question={q}
+                          isActive={activeQuestionId === q.id}
+                          allQuestions={survey.questions}
+                          onSelect={() => setActiveQuestionId(q.id)}
+                          onUpdate={updateQuestion}
+                          onDelete={() => deleteQuestion(q.id)}
+                          onDuplicate={() => duplicateQuestion(q)}
+                          onAddBranch={addBranchQuestion}
+                          onOptionRenamed={handleOptionRenamed}
+                          onOptionRemoved={handleOptionRemoved}
+                        />
+                      </div>
                     ))}
                   </SortableContext>
                 </DndContext>
