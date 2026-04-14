@@ -44,6 +44,7 @@ function SortableQuestionItem({
   onDelete,
   onDuplicate,
   onAddBranch,
+  onScrollToBranch,
   onOptionRenamed,
   onOptionRemoved,
 }: {
@@ -55,6 +56,7 @@ function SortableQuestionItem({
   onDelete: () => void;
   onDuplicate: () => void;
   onAddBranch: (questionId: string, optionValue: string) => void;
+  onScrollToBranch: (questionId: string, optionValue: string) => void;
   onOptionRenamed: (questionId: string, oldValue: string, newValue: string) => void;
   onOptionRemoved: (questionId: string, optionValue: string) => void;
 }) {
@@ -95,8 +97,8 @@ function SortableQuestionItem({
     }
   };
 
-  const hasBranch = (optionValue: string) => {
-    return allQuestions.some(q => q.condition?.questionId === question.id && q.condition?.value === optionValue);
+  const branchCount = (optionValue: string) => {
+    return allQuestions.filter(q => q.condition?.questionId === question.id && q.condition?.value === optionValue).length;
   };
 
   return (
@@ -165,23 +167,23 @@ function SortableQuestionItem({
                 <button onClick={() => removeOption(idx)} className="text-slate-300 hover:text-red-500">
                   <Trash2 className="w-3 h-3" />
                 </button>
-                {hasBranch(opt) ? (
+                {branchCount(opt) > 0 && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); onAddBranch(question.id, opt); }}
-                    className="text-sky-500 hover:text-sky-700 p-0.5"
-                    title={`Перейти к ветке «${opt}»`}
+                    onClick={(e) => { e.stopPropagation(); onScrollToBranch(question.id, opt); }}
+                    className="flex items-center gap-0.5 text-sky-500 hover:text-sky-700 p-0.5"
+                    title={`Перейти к ветке «${opt}» (${branchCount(opt)} вопр.)`}
                   >
                     <GitBranch className="w-3.5 h-3.5" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onAddBranch(question.id, opt); }}
-                    className="text-slate-300 hover:text-sky-600 p-0.5"
-                    title={`Создать ветку для «${opt}»`}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold">{branchCount(opt)}</span>
                   </button>
                 )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAddBranch(question.id, opt); }}
+                  className="text-slate-300 hover:text-sky-600 p-0.5"
+                  title={`Добавить вопрос в ветку «${opt}»`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
             <button onClick={addOption} className="flex items-center gap-1 text-sm text-sky-600 hover:underline mt-2">
@@ -357,26 +359,25 @@ export default function Builder() {
   };
 
   const deleteQuestion = (qId: string) => {
-    setSurvey(prev => prev ? {
-      ...prev,
-      questions: prev.questions
-        .filter(q => q.id !== qId)
-        .map(q => q.condition?.questionId === qId ? { ...q, condition: undefined } : q)
-    } : prev);
-    if (activeQuestionId === qId) setActiveQuestionId(null);
+    setSurvey(prev => {
+      if (!prev) return prev;
+      const toRemove = new Set<string>();
+      const collect = (id: string) => {
+        toRemove.add(id);
+        prev.questions
+          .filter(q => q.condition?.questionId === id)
+          .forEach(q => collect(q.id));
+      };
+      collect(qId);
+      return { ...prev, questions: prev.questions.filter(q => !toRemove.has(q.id)) };
+    });
+    if (activeQuestionId === qId || (survey && !survey.questions.find(q => q.id === activeQuestionId))) {
+      setActiveQuestionId(null);
+    }
   };
 
   const addBranchQuestion = (triggerQuestionId: string, optionValue: string) => {
     if (!survey) return;
-    // Check if branch already exists
-    const existing = survey.questions.find(
-      q => q.condition?.questionId === triggerQuestionId && q.condition?.value === optionValue
-    );
-    if (existing) {
-      setActiveQuestionId(existing.id);
-      document.getElementById(`q-item-${existing.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
     const newQ: Question = {
       id: uuidv4(),
       type: 'text',
@@ -384,16 +385,35 @@ export default function Builder() {
       required: false,
       condition: { questionId: triggerQuestionId, value: optionValue },
     };
-    // Insert after trigger and its existing branches
+    // Insert after the last question with the same (triggerId, value)
     const triggerIdx = survey.questions.findIndex(q => q.id === triggerQuestionId);
     let insertIdx = triggerIdx + 1;
+    let lastSameValueIdx = -1;
     while (insertIdx < survey.questions.length && survey.questions[insertIdx].condition?.questionId === triggerQuestionId) {
+      if (survey.questions[insertIdx].condition?.value === optionValue) {
+        lastSameValueIdx = insertIdx;
+      }
       insertIdx++;
     }
+    const finalIdx = lastSameValueIdx >= 0 ? lastSameValueIdx + 1 : insertIdx;
     const newQuestions = [...survey.questions];
-    newQuestions.splice(insertIdx, 0, newQ);
+    newQuestions.splice(finalIdx, 0, newQ);
     setSurvey({ ...survey, questions: newQuestions });
     setActiveQuestionId(newQ.id);
+    setTimeout(() => {
+      document.getElementById(`q-item-${newQ.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
+  const scrollToBranch = (triggerQuestionId: string, optionValue: string) => {
+    if (!survey) return;
+    const first = survey.questions.find(
+      q => q.condition?.questionId === triggerQuestionId && q.condition?.value === optionValue
+    );
+    if (first) {
+      setActiveQuestionId(first.id);
+      document.getElementById(`q-item-${first.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   const handleOptionRenamed = (questionId: string, oldValue: string, newValue: string) => {
@@ -410,10 +430,8 @@ export default function Builder() {
   const handleOptionRemoved = (questionId: string, optionValue: string) => {
     setSurvey(prev => prev ? {
       ...prev,
-      questions: prev.questions.map(q =>
-        q.condition?.questionId === questionId && q.condition?.value === optionValue
-          ? { ...q, condition: undefined }
-          : q
+      questions: prev.questions.filter(q =>
+        !(q.condition?.questionId === questionId && q.condition?.value === optionValue)
       )
     } : prev);
   };
@@ -527,7 +545,7 @@ export default function Builder() {
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={survey.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
                     {survey.questions.map((q) => (
-                      <div key={q.id} id={`q-item-${q.id}`}>
+                      <div key={q.id} id={`q-item-${q.id}`} className={q.condition ? 'ml-6 lg:ml-10 border-l-2 border-sky-200 pl-2' : ''}>
                         <SortableQuestionItem
                           question={q}
                           isActive={activeQuestionId === q.id}
@@ -537,6 +555,7 @@ export default function Builder() {
                           onDelete={() => deleteQuestion(q.id)}
                           onDuplicate={() => duplicateQuestion(q)}
                           onAddBranch={addBranchQuestion}
+                          onScrollToBranch={scrollToBranch}
                           onOptionRenamed={handleOptionRenamed}
                           onOptionRemoved={handleOptionRemoved}
                         />
