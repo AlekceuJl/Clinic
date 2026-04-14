@@ -17,6 +17,7 @@ export default function Analytics() {
   const [period, setPeriod] = useState<Period>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
 
   const filteredResponses = useMemo(() => {
     if (period === 'all') return responses;
@@ -341,55 +342,78 @@ export default function Analytics() {
                     </div>
                   )}
 
-                  {q.type === 'contact' && 'answers' in stats && (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                      {filteredResponses.map((response, i) => {
-                        const contactAnswer = response.answers.find(a => a.questionId === q.id);
-                        if (!contactAnswer || typeof contactAnswer.value !== 'object' || Array.isArray(contactAnswer.value)) return null;
-                        const contact = contactAnswer.value as Record<string, string>;
-                        const otherAnswers = response.answers.filter(a => a.questionId !== q.id);
+                  {q.type === 'contact' && 'answers' in stats && (() => {
+                    const contactResponses = filteredResponses.filter(r => {
+                      const a = r.answers.find(a => a.questionId === q.id);
+                      return a && typeof a.value === 'object' && !Array.isArray(a.value);
+                    });
+                    const isExpanded = expandedContacts.has(q.id);
+                    const visible = isExpanded ? contactResponses : contactResponses.slice(0, 10);
+                    const hasMore = contactResponses.length > 10;
 
-                        return (
-                          <div key={i} className="border border-slate-200 rounded-xl overflow-hidden">
-                            <div className="bg-slate-50 px-4 py-3 flex flex-wrap gap-4 border-b border-slate-200">
-                              {contact.name && (
-                                <span className="text-sm"><span className="text-slate-500">Имя:</span> <span className="font-medium text-slate-800">{contact.name}</span></span>
-                              )}
-                              {contact.phone && (
-                                <span className="text-sm"><span className="text-slate-500">Тел:</span> <span className="font-medium text-slate-800">{contact.phone}</span></span>
-                              )}
-                              {contact.email && (
-                                <span className="text-sm"><span className="text-slate-500">Email:</span> <span className="font-medium text-slate-800">{contact.email}</span></span>
-                              )}
-                              <span className="text-xs text-slate-400 ml-auto">{new Date(response.submittedAt).toLocaleString()}</span>
-                            </div>
-                            {otherAnswers.length > 0 && (
-                              <div className="px-4 py-3 space-y-2">
-                                {otherAnswers.map((ans) => {
-                                  const question = survey.questions.find(sq => sq.id === ans.questionId);
-                                  if (!question) return null;
-                                  let displayValue = '';
-                                  if (Array.isArray(ans.value)) {
-                                    displayValue = ans.value.join(', ');
-                                  } else if (typeof ans.value === 'object') {
-                                    displayValue = Object.values(ans.value).join(', ');
-                                  } else {
-                                    displayValue = String(ans.value);
-                                  }
-                                  return (
-                                    <div key={ans.questionId} className="text-sm">
-                                      <span className="text-slate-500">{question.title}:</span>{' '}
-                                      <span className="text-slate-800">{displayValue}</span>
-                                    </div>
-                                  );
-                                })}
+                    return (
+                      <div>
+                        <div className="space-y-4">
+                          {visible.map((response, i) => {
+                            const contactAnswer = response.answers.find(a => a.questionId === q.id);
+                            const contact = contactAnswer!.value as Record<string, string>;
+                            const otherAnswers = response.answers.filter(a => a.questionId !== q.id);
+
+                            return (
+                              <div key={i} className="border border-slate-200 rounded-xl overflow-hidden">
+                                <div className="bg-slate-50 px-4 py-3 flex flex-wrap gap-4 border-b border-slate-200">
+                                  {contact.name && (
+                                    <span className="text-sm"><span className="text-slate-500">Имя:</span> <span className="font-medium text-slate-800">{contact.name}</span></span>
+                                  )}
+                                  {contact.phone && (
+                                    <span className="text-sm"><span className="text-slate-500">Тел:</span> <span className="font-medium text-slate-800">{contact.phone}</span></span>
+                                  )}
+                                  {contact.email && (
+                                    <span className="text-sm"><span className="text-slate-500">Email:</span> <span className="font-medium text-slate-800">{contact.email}</span></span>
+                                  )}
+                                  <span className="text-xs text-slate-400 ml-auto">{new Date(response.submittedAt).toLocaleString()}</span>
+                                </div>
+                                {otherAnswers.length > 0 && (
+                                  <div className="px-4 py-3 space-y-2">
+                                    {otherAnswers.map((ans) => {
+                                      const question = survey.questions.find(sq => sq.id === ans.questionId);
+                                      if (!question) return null;
+                                      let displayValue = '';
+                                      if (Array.isArray(ans.value)) {
+                                        displayValue = ans.value.join(', ');
+                                      } else if (typeof ans.value === 'object') {
+                                        displayValue = Object.values(ans.value).join(', ');
+                                      } else {
+                                        displayValue = String(ans.value);
+                                      }
+                                      return (
+                                        <div key={ans.questionId} className="text-sm">
+                                          <span className="text-slate-500">{question.title}:</span>{' '}
+                                          <span className="text-slate-800">{displayValue}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                            );
+                          })}
+                        </div>
+                        {hasMore && (
+                          <button
+                            onClick={() => setExpandedContacts(prev => {
+                              const next = new Set(prev);
+                              if (next.has(q.id)) next.delete(q.id); else next.add(q.id);
+                              return next;
+                            })}
+                            className="mt-4 w-full py-2.5 text-sm font-medium text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 rounded-xl transition-colors"
+                          >
+                            {isExpanded ? 'Свернуть' : `Показать все (${contactResponses.length})`}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
