@@ -189,8 +189,11 @@ function SortableQuestionItem({
                   </button>
                   {branchMenuFor === opt && (
                     <div className="absolute right-0 top-6 bg-white rounded-lg border border-slate-200 shadow-lg z-30 w-52 overflow-hidden">
-                      <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100">
+                      <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                         <span className="text-[10px] font-bold text-slate-400 uppercase">Добавить в ветку «{opt}»</span>
+                        <button onClick={(e) => { e.stopPropagation(); setBranchMenuFor(null); }} className="text-slate-400 hover:text-slate-600">
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
                       {QUESTION_TYPES.map(qt => (
                         <button
