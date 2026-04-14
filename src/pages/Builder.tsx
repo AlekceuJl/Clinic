@@ -55,7 +55,7 @@ function SortableQuestionItem({
   onUpdate: (q: Question) => void;
   onDelete: () => void;
   onDuplicate: () => void;
-  onAddBranch: (questionId: string, optionValue: string) => void;
+  onAddBranch: (questionId: string, optionValue: string, qType: QuestionType) => void;
   onScrollToBranch: (questionId: string, optionValue: string) => void;
   onOptionRenamed: (questionId: string, oldValue: string, newValue: string) => void;
   onOptionRemoved: (questionId: string, optionValue: string) => void;
@@ -100,6 +100,8 @@ function SortableQuestionItem({
   const branchCount = (optionValue: string) => {
     return allQuestions.filter(q => q.condition?.questionId === question.id && q.condition?.value === optionValue).length;
   };
+
+  const [branchMenuFor, setBranchMenuFor] = useState<string | null>(null);
 
   return (
     <div 
@@ -177,13 +179,36 @@ function SortableQuestionItem({
                     <span className="text-[10px] font-bold">{branchCount(opt)}</span>
                   </button>
                 )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); onAddBranch(question.id, opt); }}
-                  className="text-slate-300 hover:text-sky-600 p-0.5"
-                  title={`Добавить вопрос в ветку «${opt}»`}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setBranchMenuFor(branchMenuFor === opt ? null : opt); }}
+                    className="text-slate-300 hover:text-sky-600 p-0.5"
+                    title={`Добавить вопрос в ветку «${opt}»`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                  {branchMenuFor === opt && (
+                    <div className="absolute right-0 top-6 bg-white rounded-lg border border-slate-200 shadow-lg z-30 w-52 overflow-hidden">
+                      <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Добавить в ветку «{opt}»</span>
+                      </div>
+                      {QUESTION_TYPES.map(qt => (
+                        <button
+                          key={qt.type}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddBranch(question.id, opt, qt.type);
+                            setBranchMenuFor(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-sky-50 text-left transition-colors border-b border-slate-50 last:border-0"
+                        >
+                          <qt.icon className="w-4 h-4 text-slate-400" />
+                          <span className="text-sm text-slate-700">{qt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
             <button onClick={addOption} className="flex items-center gap-1 text-sm text-sky-600 hover:underline mt-2">
@@ -376,13 +401,15 @@ export default function Builder() {
     }
   };
 
-  const addBranchQuestion = (triggerQuestionId: string, optionValue: string) => {
+  const addBranchQuestion = (triggerQuestionId: string, optionValue: string, qType: QuestionType = 'text') => {
     if (!survey) return;
     const newQ: Question = {
       id: uuidv4(),
-      type: 'text',
-      title: '',
+      type: qType,
+      title: qType === 'contact' ? 'Оставьте ваши контакты' : '',
       required: false,
+      options: qType === 'single' || qType === 'multiple' ? ['Вариант 1', 'Вариант 2'] : undefined,
+      contactFields: qType === 'contact' ? ['name', 'phone'] : undefined,
       condition: { questionId: triggerQuestionId, value: optionValue },
     };
     // Insert after the last question with the same (triggerId, value)
