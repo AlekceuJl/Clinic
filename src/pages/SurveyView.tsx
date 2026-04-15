@@ -18,7 +18,7 @@ export default function SurveyView() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [consent, setConsent] = useState(false);
+  const [consent, setConsent] = useState(true);
 
   if (rawSurvey === undefined) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Загрузка...</div>;
