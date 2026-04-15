@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useSurveys, useResponses } from '../store/useStore';
 import { ArrowLeft, Users, Star, BarChart2, Download, Calendar } from 'lucide-react';
