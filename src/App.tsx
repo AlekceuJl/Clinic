@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Builder from './pages/Builder';
 import Analytics from './pages/Analytics';
 import SurveyView from './pages/SurveyView';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Login from './pages/Login';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -33,6 +34,7 @@ export default function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/s/:id" element={<SurveyView />} />
+        <Route path="/s/:id/privacy" element={<PrivacyPolicy />} />
 
         {/* Protected Admin Routes */}
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

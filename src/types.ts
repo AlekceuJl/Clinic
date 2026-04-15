@@ -25,6 +25,7 @@ export interface Survey {
   brandColor?: string;
   isActive: boolean;
   _isTemplate?: boolean;
+  companyName?: string;
 }
 
 export interface Answer {

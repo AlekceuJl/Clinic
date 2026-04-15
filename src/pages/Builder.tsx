@@ -5,7 +5,7 @@ import { Survey, Question, QuestionType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   ArrowLeft, Save, Settings, Type, List, CheckSquare, Star,
-  GripVertical, Trash2, Copy, Plus, Contact, Share2, X, QrCode, GitBranch
+  GripVertical, Trash2, Copy, Plus, Contact, Share2, X, QrCode, GitBranch, ShieldCheck
 } from 'lucide-react';
 import QrModal from './QrModal';
 import {
@@ -657,6 +657,14 @@ export default function Builder() {
                   />
                   Обязательный вопрос
                 </label>
+                {activeQuestion.type === 'contact' && (
+                  <div className="mt-3 flex items-start gap-2 p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                    <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-sky-900 leading-relaxed">
+                      При сборе контактов респондент увидит чекбокс согласия на обработку ПДн и ссылку на автоматическую политику конфиденциальности (Закон РК № 94-V).
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Condition section */}

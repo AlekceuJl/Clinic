@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { useResponses } from '../store/useStore';
@@ -18,6 +18,7 @@ export default function SurveyView() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [consent, setConsent] = useState(false);
 
   if (rawSurvey === undefined) {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">Загрузка...</div>;
@@ -94,6 +95,8 @@ export default function SurveyView() {
     }
   };
 
+  const hasContactQuestion = survey.questions.some(q => q.type === 'contact');
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     survey.questions.forEach(q => {
@@ -111,6 +114,9 @@ export default function SurveyView() {
         }
       }
     });
+    if (hasContactQuestion && !consent) {
+      newErrors._consent = 'Необходимо согласие на обработку персональных данных';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -320,10 +326,48 @@ export default function SurveyView() {
           })}
         </div>
 
-        <div className="mt-12 flex justify-end">
+        {hasContactQuestion && (
+          <div className="mt-10 p-4 bg-white rounded-xl border border-slate-200">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={e => {
+                  setConsent(e.target.checked);
+                  if (e.target.checked && errors._consent) {
+                    setErrors(prev => {
+                      const next = { ...prev };
+                      delete next._consent;
+                      return next;
+                    });
+                  }
+                }}
+                className="mt-1 w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+              />
+              <span className="text-sm text-slate-700 leading-relaxed">
+                Согласен(на) с{' '}
+                <Link
+                  to={`/s/${survey.id}/privacy`}
+                  target="_blank"
+                  className="underline hover:no-underline"
+                  style={{ color: survey.brandColor || '#0ea5e9' }}
+                >
+                  политикой обработки персональных данных
+                </Link>
+                {survey.companyName && <> <strong>«{survey.companyName}»</strong></>}.
+              </span>
+            </label>
+            {errors._consent && (
+              <p className="text-red-500 text-sm mt-2 ml-7">{errors._consent}</p>
+            )}
+          </div>
+        )}
+
+        <div className="mt-8 flex justify-end">
           <button
             onClick={handleSubmit}
-            className="px-8 py-4 rounded-xl text-white font-medium text-lg shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+            disabled={hasContactQuestion && !consent}
+            className="px-8 py-4 rounded-xl text-white font-medium text-lg shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-md"
             style={{ backgroundColor: survey.brandColor || '#0ea5e9' }}
           >
             Отправить ответы
