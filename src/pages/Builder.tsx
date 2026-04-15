@@ -754,14 +754,27 @@ export default function Builder() {
                   <div>
                     <label className="block text-sm text-slate-600 mb-1">Брендовый цвет</label>
                     <div className="flex items-center gap-2">
-                      <input 
-                        type="color" 
+                      <input
+                        type="color"
                         value={survey.brandColor || '#0ea5e9'}
                         onChange={e => setSurvey({...survey, brandColor: e.target.value})}
                         className="w-8 h-8 rounded cursor-pointer border-0 p-0"
                       />
                       <span className="text-sm text-slate-500 uppercase">{survey.brandColor || '#0ea5e9'}</span>
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">Перенаправление после отправки</label>
+                    <input
+                      type="url"
+                      value={survey.redirectUrl || ''}
+                      onChange={e => setSurvey({ ...survey, redirectUrl: e.target.value })}
+                      placeholder="https://instagram.com/your_clinic"
+                      className="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-sky-500"
+                    />
+                    <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                      Необязательно. Пользователь попадёт на эту ссылку после отправки ответов.
+                    </p>
                   </div>
                 </div>
               </div>

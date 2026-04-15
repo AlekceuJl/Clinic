@@ -34,6 +34,7 @@ export default defineSchema({
     isActive: v.boolean(),
     userId: v.optional(v.string()),
     companyName: v.optional(v.string()),
+    redirectUrl: v.optional(v.string()),
   }).index("by_clientId", ["clientId"])
     .index("by_userId", ["userId"]),
 

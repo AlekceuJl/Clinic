@@ -33,6 +33,7 @@ export function useSurveys() {
     brandColor: s.brandColor,
     isActive: s.isActive,
     _isTemplate: !s.userId,
+    redirectUrl: s.redirectUrl ?? undefined,
   }));
 
   const isLoading = rawSurveys === undefined;
@@ -49,6 +50,7 @@ export function useSurveys() {
       isActive: survey.isActive,
       userId,
       companyName,
+      redirectUrl: survey.redirectUrl,
     });
   };
 

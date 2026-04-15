@@ -42,6 +42,7 @@ export default function SurveyView() {
     brandColor: rawSurvey.brandColor,
     isActive: rawSurvey.isActive,
     companyName: rawSurvey.companyName ?? undefined,
+    redirectUrl: rawSurvey.redirectUrl ?? undefined,
   };
 
   const handleAnswer = (questionId: string, value: any) => {
@@ -144,6 +145,12 @@ export default function SurveyView() {
     });
 
     setIsSubmitted(true);
+
+    if (survey.redirectUrl && survey.redirectUrl.trim()) {
+      const raw = survey.redirectUrl.trim();
+      const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      setTimeout(() => { window.location.href = url; }, 1500);
+    }
   };
 
   if (isSubmitted) {
@@ -162,6 +169,12 @@ export default function SurveyView() {
           </div>
           <h2 className="text-2xl font-semibold mb-2 text-slate-800">Спасибо за ответ!</h2>
           <p className="text-slate-500">Ваше мнение очень важно для нас.</p>
+          {survey.redirectUrl && survey.redirectUrl.trim() && (
+            <p className="text-sm text-slate-400 mt-4 flex items-center justify-center gap-2">
+              <span className="inline-block w-3 h-3 border-2 border-slate-300 border-t-sky-500 rounded-full animate-spin" />
+              Перенаправляем...
+            </p>
+          )}
         </motion.div>
       </div>
     );

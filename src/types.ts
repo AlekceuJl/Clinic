@@ -26,6 +26,7 @@ export interface Survey {
   isActive: boolean;
   _isTemplate?: boolean;
   companyName?: string;
+  redirectUrl?: string;
 }
 
 export interface Answer {

@@ -46,6 +46,7 @@ export const save = mutation({
     isActive: v.boolean(),
     userId: v.string(),
     companyName: v.optional(v.string()),
+    redirectUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -65,6 +66,7 @@ export const save = mutation({
         isActive: args.isActive,
         userId: args.userId,
         companyName: args.companyName,
+        redirectUrl: args.redirectUrl,
       });
       return existing._id;
     } else {
