@@ -84,6 +84,14 @@ export const remove = mutation({
       if (existing.userId && existing.userId !== args.userId) {
         throw new Error("Нет доступа к этому опросу");
       }
+      // Hard delete: cascade remove all responses for this survey
+      const responses = await ctx.db
+        .query("responses")
+        .withIndex("by_surveyId", (q) => q.eq("surveyId", args.clientId))
+        .collect();
+      for (const r of responses) {
+        await ctx.db.delete(r._id);
+      }
       await ctx.db.delete(existing._id);
     }
   },
