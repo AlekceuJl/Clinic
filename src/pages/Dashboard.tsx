@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useSurveys } from '../store/useStore';
-import { Plus, BarChart2, Edit, Trash2, Link as LinkIcon, ClipboardList, LogOut, Copy, QrCode } from 'lucide-react';
+import { Plus, BarChart2, Edit, Trash2, Link as LinkIcon, ClipboardList, LogOut, Copy, QrCode, AlertTriangle, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import QrModal from './QrModal';
@@ -9,6 +9,7 @@ export default function Dashboard() {
   const { surveys, deleteSurvey, saveSurvey } = useSurveys();
   const navigate = useNavigate();
   const [qrSurveyId, setQrSurveyId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const userCompanyName = (() => {
     try {
@@ -129,9 +130,7 @@ export default function Dashboard() {
                     </button>
                   </div>
                   <button
-                    onClick={() => {
-                      if (window.confirm('Удалить опрос?')) deleteSurvey(survey.id);
-                    }}
+                    onClick={() => setDeleteTarget({ id: survey.id, title: survey.title || 'Без названия' })}
                     className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
                     title="Удалить"
                   >
@@ -190,6 +189,68 @@ export default function Dashboard() {
           surveyTitle={surveys.find(s => s.id === qrSurveyId)?.title || ''}
           onClose={() => setQrSurveyId(null)}
         />
+      )}
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900">Удалить опрос?</h3>
+              </div>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-slate-700">
+                Вы собираетесь удалить опрос <strong>«{deleteTarget.title}»</strong>.
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-1.5">
+                <p className="text-sm font-medium text-red-900">Будут безвозвратно удалены:</p>
+                <ul className="text-sm text-red-800 space-y-1 list-disc pl-5">
+                  <li>Все вопросы и настройки опроса</li>
+                  <li>Все собранные ответы респондентов</li>
+                  <li>Все контактные данные (имя, телефон, email)</li>
+                  <li>Вся аналитика по этому опросу</li>
+                </ul>
+              </div>
+              <p className="text-sm text-slate-500">
+                Это действие нельзя отменить. Рекомендуем выгрузить данные в Excel до удаления.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 p-4 bg-slate-50 border-t border-slate-100">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={() => {
+                  deleteSurvey(deleteTarget.id);
+                  setDeleteTarget(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Удалить навсегда
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
